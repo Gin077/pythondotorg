@@ -11,6 +11,7 @@ class UsersFormsTestCase(TestCase):
     def test_user_creation_form(self):
         form = UserCreationForm({
             'username': 'username',
+            'email': 'test@example.com',
             'password1': 'password',
             'password2': 'password'
         })
@@ -28,7 +29,7 @@ class UsersFormsTestCase(TestCase):
             'password2': 'password'
         })
         self.assertFalse(form.is_valid())
-        self.assertTrue('username' in form.errors)
+        self.assertIn('username', form.errors)
 
         # password mismatch
         form = UserCreationForm({
@@ -37,21 +38,17 @@ class UsersFormsTestCase(TestCase):
             'password2': 'passwordmismatch'
         })
         self.assertFalse(form.is_valid())
-        self.assertTrue('password2' in form.errors)
+        self.assertIn('password2', form.errors)
 
-    '''
-    def test_user_change_form(self):
-        user = User.objects.create_user(
-            username='username',
-            password='password'
-        )
-        form = UserChangeForm({
+    def test_duplicate_email(self):
+        User.objects.create_user('test1', 'test@example.com', 'testpass')
+
+        # dupe email
+        form = UserCreationForm({
             'username': 'username2',
-            'last_login': user.last_login,
-            'date_joined': user.date_joined
-        }, instance=user)
-        self.assertTrue(form.is_valid())
-        user = form.save()
-        user = User.objects.get(pk=user.pk)
-        self.assertEqual(user.username, 'username2')
-    '''
+            'email': 'test@example.com',
+            'password1': 'password',
+            'password2': 'password'
+        })
+        self.assertFalse(form.is_valid())
+        self.assertIn('email', form.errors)
